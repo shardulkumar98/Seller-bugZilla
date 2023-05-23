@@ -31,7 +31,6 @@ class BugzillaBugService {
         is_patch: true,
       },
     })
-
     const attachmentResponse = await attachmentRequest.send()
 
     return attachmentResponse
@@ -56,9 +55,7 @@ class BugzillaBugService {
       if (error) return res.status(500).json({ error: true, message: error.message })
       logger.info('Hitting')
 
-      //find user
       const userResponse = await userService.getUser({ userId: data.bpp_id })
-
       //create user
       if (!userResponse?.data?.users[0]) {
         await userService.createUser({
@@ -94,11 +91,8 @@ class BugzillaBugService {
       }
 
       const complaint_actions_merged = [...data.action.complainant_actions, ...data.action.respondent_actions]
-
       const sortedDataByDate = this.sortByDate(complaint_actions_merged)
 
-
-      //create bug
       const createBug = new GetHttpRequest({
         url: '/rest/bug',
         method: 'post',
@@ -122,15 +116,11 @@ class BugzillaBugService {
           data: data?.attachments[0],
         })
       }
-      console.log("response.data",response.data)
       if (response.data) {
         for (const item of sortedDataByDate) {
-          console.log("item---",item)
-          const comment = this.generateTheCommentFromObject(item)          
-          console.log("🚀 ~ file: bugzilla.service.ts:130 ~ BugzillaBugService ~ createBug ~ comment:", comment)
+          const comment = this.generateTheCommentFromObject(item)         
 
-          const myComment = await this.addComments({ bugId: response.data.id, data: comment })
-          console.log("🚀 ~ file: bugzilla.service.ts:133 ~ BugzillaBugService ~ createBug ~ myComment:", myComment)
+          await this.addComments({ bugId: response.data.id, data: comment })
         }
       }
 
@@ -244,7 +234,6 @@ class BugzillaBugService {
 
   generateTheCommentFromObject(item: any) {
     const keys = Object.keys(item)
-    console.log({keys})
 
     switch (keys[0]) {
       case 'complainant_action':
